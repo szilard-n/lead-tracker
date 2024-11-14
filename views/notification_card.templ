@@ -1,0 +1,74 @@
+package views
+
+type NotificationType string
+
+const (
+	NotificationSuccess NotificationType = "success"
+	NotificationError   NotificationType = "error"
+	NotificationWarning NotificationType = "warning"
+)
+
+type NotificationProps struct {
+	Type    NotificationType
+	Message string
+}
+
+templ Notification(props NotificationProps) {
+	<div
+		id="notify"
+		class={ "notification fixed top-4 right-4 p-4 rounded-lg shadow-lg border transform transition-all duration-300 ease-in-out translate-x-0 " + notificationBackground(props.Type) }
+		style="z-index: 9999; opacity: 1; right: 1rem;"
+	>
+		<div class="flex items-center gap-3">
+			if props.Type == NotificationSuccess {
+				<div class="flex-shrink-0 w-5 h-5">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="text-green-600">
+						<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"></path>
+					</svg>
+				</div>
+				<p class="text-green-800 font-medium">{ props.Message }</p>
+			} else if props.Type == NotificationError {
+				<div class="flex-shrink-0 w-5 h-5">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="text-red-600">
+						<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"></path>
+					</svg>
+				</div>
+				<p class="text-red-800 font-medium">{ props.Message }</p>
+			} else {
+				<div class="flex-shrink-0 w-5 h-5">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="text-yellow-600">
+						<path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path>
+					</svg>
+				</div>
+				<p class="text-yellow-800 font-medium">{ props.Message }</p>
+			}
+		</div>
+		<script>
+            (() => {
+                setTimeout(() => {
+                    const notification = document.getElementById("notify");
+                    if (notification) {
+                        notification.style.opacity = "0";
+                        notification.style.transform = "translateX(100%)";
+                        setTimeout(() => {
+                            notification.remove();
+                        }, 300);
+                    }
+                }, 2000);
+            })();
+        </script>
+	</div>
+}
+
+func notificationBackground(t NotificationType) string {
+	switch t {
+	case NotificationSuccess:
+		return "bg-green-50 border-green-200"
+	case NotificationError:
+		return "bg-red-50 border-red-200"
+	case NotificationWarning:
+		return "bg-yellow-50 border-yellow-200"
+	default:
+		return "bg-gray-50 border-gray-200"
+	}
+}

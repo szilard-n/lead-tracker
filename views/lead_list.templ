@@ -1,0 +1,221 @@
+package views
+
+import (
+	"fmt"
+	"leadgentracker/internals/model"
+	"leadgentracker/internals/model/constants"
+	"leadgentracker/internals/model/dto"
+)
+
+templ LeadList(leads []model.Lead, totalPages int, filter *dto.LeadFilter) {
+	<script>
+        function toggleDetails(element) {
+            const details = element.nextElementSibling;
+            details.classList.toggle('hidden');
+        }
+    </script>
+	@FilterBar(filter)
+	<div class="space-y-4">
+		for _, lead := range leads {
+			@Lead(&lead, filter.Page)
+		}
+		@Pagination(filter.Page, totalPages)
+	</div>
+}
+
+templ Lead(lead *model.Lead, page int) {
+	<div id={ "lead-card-" + lead.ID.Hex() } class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+		@leadHeader(lead, page)
+		@leadDetails(lead, page)
+	</div>
+}
+
+templ leadHeader(lead *model.Lead, page int) {
+	<div
+		class="p-4 cursor-pointer hover:bg-gray-50 transition-colors duration-150"
+		onclick="toggleDetails(this)"
+	>
+		<div class="flex items-center gap-4">
+			if lead.PictureUrl != "" {
+				<img
+					src={ lead.PictureUrl }
+					alt={ "Profile picture of " + lead.Name }
+					class="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+				/>
+			} else {
+				<div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300">
+					<span class="text-gray-500 text-lg font-medium">
+						{ string([]rune(lead.Name)[0]) }
+					</span>
+				</div>
+			}
+			<div class="flex-1">
+				<div class="flex items-center justify-between">
+					<span class="text-lg font-semibold text-gray-900">{ lead.Name }</span>
+					<div class="flex items-center gap-2">
+						if lead.ProfileType == constants.ProfileTypePublic {
+							<span class="px-2 py-1 text-sm rounded-full bg-blue-100 text-blue-800">{ string(lead.ProfileType) }</span>
+						} else {
+							<span class="px-2 py-1 text-sm rounded-full bg-teal-100 text-teal-800">{ string(lead.ProfileType) }</span>
+						}
+						if lead.OutreachType == constants.OutreachTypeInMail {
+							<span class="px-2 py-1 text-sm rounded-full bg-green-100 text-green-800">{ string(lead.OutreachType) }</span>
+						} else {
+							<span class="px-2 py-1 text-sm rounded-full bg-blue-100 text-blue-800">{ string(lead.OutreachType) }</span>
+						}
+						if lead.ConnectionStatus == constants.ConnectionStatusPending {
+							<span class="px-2 py-1 text-sm rounded-full bg-amber-200 text-amber-900">{ string(lead.ConnectionStatus) }</span>
+						} else {
+							<span class="px-2 py-1 text-sm rounded-full bg-green-200 text-green-900">{ string(lead.ConnectionStatus) }</span>
+						}
+						if lead.LeadTemperature == constants.LeadTemperatureHot {
+							<span class="px-2 py-1 text-sm rounded-full bg-red-200 text-red-800">Hot Lead</span>
+						} else {
+							<span class="px-2 py-1 text-sm rounded-full bg-gray-200 text-gray-800">Cold Lead</span>
+						}
+					</div>
+				</div>
+				<div class="mt-2 flex justify-between items-center">
+					<span class="text-sm text-gray-600">Added: { lead.Date.Format("Jan 02, 2006") }</span>
+					<button
+						type="button"
+						class="text-red-600 hover:text-red-800 text-sm font-medium"
+						hx-delete={ fmt.Sprintf("/delete-lead?page=%d&id=%s", page, lead.ID.Hex()) }
+						hx-confirm={ fmt.Sprintf("Are you sure you want to delete %s from the lead list?", lead.Name) }
+						onclick="event.stopPropagation()"
+					>
+						Delete
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+templ leadDetails(lead *model.Lead, page int) {
+	<div class="hidden border-t border-gray-200">
+		<div class="p-4 space-y-4">
+			if lead.URL != "" {
+				<p class="text-blue-600 hover:text-blue-800">
+					<a href={ templ.URL(lead.URL) } target="_blank" class="flex items-center gap-1">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+							<path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"></path>
+							<path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"></path>
+						</svg>
+						Lead's Profile Url
+					</a>
+				</p>
+			}
+			<form
+				class="space-y-4"
+				hx-put={ "/update-lead?page=" + string(page) }
+				hx-trigger="submit"
+				hx-swap="outerHTML"
+				hx-target={ "#lead-card-" + lead.ID.Hex() }
+			>
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+					@leadConnetionStatusSelect(lead)
+					@leadTemperatureSelect(lead)
+				</div>
+				@leadFollowUpCheckBox(lead)
+				@leadNotes(lead)
+				<input type="hidden" name="id" value={ lead.ID.Hex() }/>
+				<button
+					type="submit"
+					class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-150"
+				>
+					Update Lead
+				</button>
+			</form>
+		</div>
+	</div>
+}
+
+templ leadConnetionStatusSelect(lead *model.Lead) {
+	<div class="form-group">
+		if lead.OutreachType == constants.OutreachTypeConnection {
+			<label for={ "connection-status-" + lead.ID.Hex() } class="block text-sm font-medium text-gray-700 mb-1">Connection Status</label>
+			<select
+				id={ "connection-status-" + lead.ID.Hex() }
+				name="connectionStatus"
+				class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+			>
+				if lead.ConnectionStatus == constants.ConnectionStatusPending {
+					<option value={ string(constants.ConnectionStatusPending) } selected>Pending</option>
+					<option value={ string(constants.ConnectionStatusAccepted) }>Accepted</option>
+				} else {
+					<option value={ string(constants.ConnectionStatusPending) }>Pending</option>
+					<option value={ string(constants.ConnectionStatusAccepted) } selected>Accepted</option>
+				}
+			</select>
+		} else {
+			<label for={ "connection-status-" + lead.ID.Hex() } class="block text-sm font-medium text-gray-700 mb-1">InMail Status</label>
+			<select
+				id={ "connection-status-" + lead.ID.Hex() }
+				name="connectionStatus"
+				class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+			>
+				if lead.ConnectionStatus == constants.ConnectionStatusPending {
+					<option value={ string(constants.ConnectionStatusPending) } selected>Pending</option>
+					<option value={ string(constants.ConnectionStatusResponded) }>Responded</option>
+				} else {
+					<option value={ string(constants.ConnectionStatusPending) }>Pending</option>
+					<option value={ string(constants.ConnectionStatusResponded) } selected>Responded</option>
+				}
+			</select>
+		}
+	</div>
+}
+
+templ leadTemperatureSelect(lead *model.Lead) {
+	<div class="form-group">
+		<label for={ "lead-temperature-" + lead.ID.Hex() } class="block text-sm font-medium text-gray-700 mb-1">Lead Temperature</label>
+		<select
+			id={ "lead-temperature-" + lead.ID.Hex() }
+			name="leadTemperature"
+			class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+		>
+			if lead.LeadTemperature == constants.LeadTemperatureCold {
+				<option value={ string(constants.LeadTemperatureCold) } selected>Cold Lead</option>
+				<option value={ string(constants.LeadTemperatureHot) }>Hot Lead</option>
+			} else {
+				<option value={ string(constants.LeadTemperatureCold) }>Cold Lead</option>
+				<option value={ string(constants.LeadTemperatureHot) } selected>Hot Lead</option>
+			}
+		</select>
+	</div>
+}
+
+templ leadFollowUpCheckBox(lead *model.Lead) {
+	<div class="flex items-center gap-2">
+		if lead.FollowupSent {
+			<input
+				type="checkbox"
+				id={ "followup-" + lead.ID.Hex() }
+				name="followupSent"
+				checked
+				class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+			/>
+		} else {
+			<input
+				type="checkbox"
+				id={ "followup-" + lead.ID.Hex() }
+				name="followupSent"
+				class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+			/>
+		}
+		<label for={ "followup-" + lead.ID.Hex() } class="text-sm font-medium text-gray-700">Follow-up Sent</label>
+	</div>
+}
+
+templ leadNotes(lead *model.Lead) {
+	<div class="form-group">
+		<label for={ "notes-" + lead.ID.Hex() } class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+		<textarea
+			id={ "notes-" + lead.ID.Hex() }
+			name="notes"
+			rows="3"
+			class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+		>{ lead.Notes }</textarea>
+	</div>
+}

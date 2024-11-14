@@ -1,0 +1,34 @@
+name: lead-gen-tracker
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tracker
+    ports:
+      - "8817:8080"
+    environment:
+      - MONGO_HOST=${MONGO_HOST}
+      - MONGO_PORT=${MONGO_PORT}
+      - MONGO_DB=${MONGO_DB}
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:latest
+    container_name: database
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=passw0rd
+      - MONGO_INITDB_DATABASE=lead-tracker
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data: {}

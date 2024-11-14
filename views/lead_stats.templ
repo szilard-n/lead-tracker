@@ -1,0 +1,51 @@
+package views
+
+import (
+	"leadgentracker/internals/model"
+	"strconv"
+)
+
+templ LeadStats(accumulatedStats *model.Stats, todayStats *model.Stats) {
+	<div
+		id="lead-stats"
+		class="grid md:grid-cols-2 gap-6"
+		hx-get="/lead-stats"
+		hx-trigger="refreshLeadStats"
+		hx-target="#lead-stats"
+	>
+		@totalStats(accumulatedStats)
+		@dailyStats(todayStats)
+	</div>
+}
+
+templ totalStats(stats *model.Stats) {
+	<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+		<h3 class="text-lg font-semibold text-gray-900 mb-4">Total Stats</h3>
+		<div class="grid grid-cols-2 gap-4">
+			<div class="bg-green-50 p-4 rounded-lg">
+				<div class="text-3xl font-bold text-green-600 mb-1">{ strconv.FormatInt(int64(stats.InMails), 10) }</div>
+				<div class="text-sm text-green-800">InMails</div>
+			</div>
+			<div class="bg-blue-50 p-4 rounded-lg">
+				<div class="text-3xl font-bold text-blue-600 mb-1">{ strconv.FormatInt(int64(stats.Connections), 10) }</div>
+				<div class="text-sm text-blue-800">Connections</div>
+			</div>
+		</div>
+	</div>
+}
+
+templ dailyStats(stats *model.Stats) {
+	<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+		<h3 class="text-lg font-semibold text-gray-900 mb-4">Today's Stats</h3>
+		<div class="grid grid-cols-2 gap-4">
+			<div class="bg-green-50 p-4 rounded-lg">
+				<div class="text-3xl font-bold text-green-600 mb-1">{ strconv.FormatInt(int64(stats.InMails), 10) }</div>
+				<div class="text-sm text-green-800">InMails</div>
+			</div>
+			<div class="bg-blue-50 p-4 rounded-lg">
+				<div class="text-3xl font-bold text-blue-600 mb-1">{ strconv.FormatInt(int64(stats.Connections), 10) }</div>
+				<div class="text-sm text-blue-800">Connections</div>
+			</div>
+		</div>
+	</div>
+}

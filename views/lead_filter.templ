@@ -1,0 +1,105 @@
+package views
+
+import (
+	"leadgentracker/internals/model/constants"
+	"leadgentracker/internals/model/dto"
+)
+
+templ FilterBar(filters *dto.LeadFilter) {
+	<div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+		<form
+			class="space-y-4"
+			hx-get="/leads"
+			hx-trigger="input changed delay:300ms, search"
+			hx-target="#lead-list"
+		>
+			<div class="grid grid-cols-12 gap-4">
+				// Search input - spans 6 columns
+				<div class="col-span-12 md:col-span-6">
+					<label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search Names</label>
+					<div class="relative">
+						<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+							<svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+								<path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+							</svg>
+						</div>
+						<input
+							type="search"
+							id="search"
+							name="search"
+							value={ filters.SearchQuery }
+							class="w-full rounded-md border border-gray-300 pl-10 py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+							placeholder="Search leads..."
+						/>
+					</div>
+				</div>
+				// Filters - each spans 2 columns
+				<div class="col-span-12 md:col-span-2">
+					<label for="outreach-type" class="block text-sm font-medium text-gray-700 mb-1">Outreach Type</label>
+					<select
+						id="outreach-type"
+						name="outreachType"
+						class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+					>
+						<option value="">All Types</option>
+						if filters.OutreachType == constants.OutreachTypeConnection {
+							<option value={ string(constants.OutreachTypeConnection) } selected>Connection</option>
+							<option value={ string(constants.OutreachTypeInMail) }>InMail</option>
+						} else if filters.OutreachType == constants.OutreachTypeInMail {
+							<option value={ string(constants.OutreachTypeConnection) }>Connection</option>
+							<option value={ string(constants.OutreachTypeInMail) } selected>InMail</option>
+						} else {
+							<option value={ string(constants.OutreachTypeConnection) }>Connection</option>
+							<option value={ string(constants.OutreachTypeInMail) }>InMail</option>
+						}
+					</select>
+				</div>
+				<div class="col-span-12 md:col-span-2">
+					<label for="lead-temperature" class="block text-sm font-medium text-gray-700 mb-1">Temperature</label>
+					<select
+						id="lead-temperature"
+						name="leadTemperature"
+						class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+					>
+						<option value="">All Leads</option>
+						if filters.LeadTemperature == constants.LeadTemperatureHot {
+							<option value={ string(constants.LeadTemperatureCold) }>Cold</option>
+							<option value={ string(constants.LeadTemperatureHot) } selected>Hot</option>
+						} else if filters.LeadTemperature == constants.LeadTemperatureCold {
+							<option value={ string(constants.LeadTemperatureCold) } selected>Cold</option>
+							<option value={ string(constants.LeadTemperatureHot) }>Hot</option>
+						} else {
+							<option value={ string(constants.LeadTemperatureCold) }>Cold</option>
+							<option value={ string(constants.LeadTemperatureHot) }>Hot</option>
+						}
+					</select>
+				</div>
+				<div class="col-span-12 md:col-span-2">
+					<label for="date-added" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+					<input
+						type="date"
+						id="date-added"
+						name="dateAdded"
+						value={ filters.DateAdded.Format("2006-01-02") }
+						class="w-full rounded-md border border-gray-300 shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+					/>
+				</div>
+			</div>
+			if filters.HasActiveFilters() {
+				<div class="flex justify-end">
+					<button
+						type="button"
+						hx-get="/leads"
+						hx-target="#lead-list"
+						class="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+							<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+						</svg>
+						Clear Filters
+					</button>
+				</div>
+			}
+		</form>
+	</div>
+}
